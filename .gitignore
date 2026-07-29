@@ -1,0 +1,48 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Python environments, caches, coverage, and packaging
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+build/
+dist/
+
+# JavaScript dependencies and compiled/package output
+node_modules/
+mcp-server/dist/
+vscode-extension/out/
+*.vsix
+*.tsbuildinfo
+
+# Runtime state and logs
+*.db
+*.sqlite
+*.sqlite3
+*.log
+*.pid
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Generated reports
+report.md
+
+# Large demo recordings are intentionally local-only. See README.md.
+*.mp4
+*.mov
+*.m4v
