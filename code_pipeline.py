@@ -16,7 +16,7 @@ To swap in a different model for the critic, change CRITIC_MODEL below.
 from dotenv import load_dotenv
 import anthropic
 
-load_dotenv(override=True)
+load_dotenv(override=False)
 
 client = anthropic.Anthropic()
 
@@ -24,6 +24,19 @@ WRITER_MODEL = "claude-opus-4-7"
 CRITIC_MODEL = "claude-opus-4-7"  # swap to a different model here if desired
 
 MAX_ITERATIONS = 5
+
+
+def is_approved(feedback: str) -> bool:
+    return feedback == "APPROVED"
+
+
+def _first_text(response: object, agent_name: str) -> str:
+    """Return the first nonempty model text block with a controlled failure."""
+    for block in getattr(response, "content", []):
+        text = getattr(block, "text", None)
+        if isinstance(text, str) and text.strip():
+            return text.strip()
+    raise RuntimeError(f"{agent_name} returned no text content")
 
 # ---------------------------------------------------------------------------
 # System prompts
@@ -62,7 +75,11 @@ Only report concrete bugs or correctness problems.
 # Agent calls
 # ---------------------------------------------------------------------------
 
-def write_code(request: str, previous_code: str = None, feedback: str = None) -> str:
+def write_code(
+    request: str,
+    previous_code: str | None = None,
+    feedback: str | None = None,
+) -> str:
     if previous_code and feedback:
         prompt = (
             f"Original request: {request}\n\n"
@@ -79,7 +96,9 @@ def write_code(request: str, previous_code: str = None, feedback: str = None) ->
         system=WRITER_SYSTEM,
         messages=[{"role": "user", "content": prompt}],
     )
-    return response.content[0].text.strip()
+    code = _first_text(response, "Writer")
+    compile(code, "<generated-code>", "exec")
+    return code
 
 
 def critique_code(code: str) -> str:
@@ -89,7 +108,7 @@ def critique_code(code: str) -> str:
         system=CRITIC_SYSTEM,
         messages=[{"role": "user", "content": code}],
     )
-    return response.content[0].text.strip()
+    return _first_text(response, "Critic")
 
 
 # ---------------------------------------------------------------------------
@@ -106,18 +125,19 @@ def run_code_pipeline(request: str) -> str:
     for iteration in range(1, MAX_ITERATIONS + 1):
         print(f"\n[Iteration {iteration}] Writer generating code...")
         code = write_code(request, previous_code=code, feedback=feedback)
-        print(code)
+        print(f"[Writer] Generated {len(code.splitlines())} lines")
 
         print(f"\n[Iteration {iteration}] Critic reviewing...")
         feedback = critique_code(code)
         print(f"Critic: {feedback}")
 
-        if feedback.strip().upper().startswith("APPROVED"):
+        if is_approved(feedback):
             print(f"\n✓ Approved after {iteration} iteration(s).")
             return code
 
-    print(f"\n⚠ Max iterations ({MAX_ITERATIONS}) reached. Returning best attempt.")
-    return code
+    raise RuntimeError(
+        f"Critic did not approve generated code after {MAX_ITERATIONS} iterations"
+    )
 
 
 # ---------------------------------------------------------------------------

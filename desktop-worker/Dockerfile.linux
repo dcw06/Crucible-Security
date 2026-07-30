@@ -1,0 +1,16 @@
+FROM python:3.13-slim
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        binutils dpkg rpm squashfs-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd --create-home --uid 10001 worker
+WORKDIR /opt/worker
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY worker.py .
+USER worker
+
+ENV DESKTOP_WORKER_PLATFORM=Linux PORT=8080
+CMD ["python", "worker.py"]

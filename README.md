@@ -12,6 +12,8 @@ production-style Crucible application.
 ├── generated_code.py      # Fixture produced by the Python prototype
 ├── test_generated_code.py # Root prototype regression suite
 ├── crucible/              # Security scanning web app (Git submodule)
+├── browser-worker/        # Separate Playwright/axe execution boundary
+├── desktop-worker/        # Attested native package inspection boundary
 ├── mcp-server/            # MCP interface to the Writer/Critic prototype
 └── vscode-extension/      # VS Code interface to the Writer/Critic prototype
 ```
@@ -46,13 +48,21 @@ Useful commands:
 make test          # Root and Crucible Python tests
 make build         # MCP server and VS Code extension TypeScript builds
 make check         # Python compilation, tests, and TypeScript builds
-make web           # Crucible Streamlit web application
+make test-worker   # Browser-worker policy contract tests
+make test-desktop-worker # Native worker parser/contract tests
+make web           # Local-only Crucible UI on 127.0.0.1
 make api           # Crucible FastAPI webhook API
 ```
 
 The root prototypes require Anthropic credentials for live model calls.
+`research_pipeline.py` also requires `BRAVE_SEARCH_API_KEY`; it fails closed
+when live search is unavailable and no longer produces simulated research.
 Crucible has additional scanner and service configuration documented in
 [`crucible/README.md`](crucible/README.md).
+
+`make web` explicitly uses the development-only unauthenticated scanner profile
+and binds Streamlit to `127.0.0.1`. Production and Docker launches remain
+fail-closed and require a `SCANNER_ACCESS_TOKEN` of at least 32 characters.
 
 ## Artifact policy
 

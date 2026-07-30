@@ -1,0 +1,87 @@
+version: "3.9"
+
+# Crucible — docker-compose
+# Webhook and dashboard share only durable state. Upload scratch data is kept
+# on the dashboard's ephemeral tmpfs and ClamAV signatures use their own volume.
+
+services:
+
+  webhook:
+    build: .
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file: .env
+    volumes:
+      - crucible_state:/var/lib/crucible
+    restart: unless-stopped
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 1.0
+    tmpfs:
+      - /home/crucible/.cache:size=64m,mode=0700,uid=10001,gid=10001
+    environment:
+      STATE_DB: /var/lib/crucible/crucible_state.db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  dashboard:
+    build: .
+    command: streamlit run dashboard.py --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "127.0.0.1:8501:8501"
+    env_file: .env
+    volumes:
+      - crucible_state:/var/lib/crucible
+      - clamav_signatures:/var/lib/clamav:ro
+    depends_on:
+      - webhook
+    restart: unless-stopped
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 256
+    mem_limit: 2g
+    cpus: 2.0
+    tmpfs:
+      - /home/crucible/.cache:size=64m,mode=0700,uid=10001,gid=10001
+      - /var/lib/crucible-scratch:size=1g,mode=0700,uid=10001,gid=10001
+    environment:
+      STATE_DB: /var/lib/crucible/crucible_state.db
+      SCANNER_SCRATCH_DIR: /var/lib/crucible-scratch
+      STREAMLIT_SERVER_MAX_UPLOAD_SIZE: "200"
+      MAX_ARCHIVE_UPLOAD_BYTES: "209715200"
+      MAX_SOURCE_UPLOAD_BYTES: "209715200"
+      MAX_EXTRACTED_BYTES: "524288000"
+      SCANNER_BYTE_QUOTA_BYTES: "419430400"
+      SCANNER_MAX_CONCURRENT: "1"
+
+  clamav-updater:
+    build: .
+    command:
+      - freshclam
+      - --daemon
+      - --foreground
+      - --checks=24
+      - --user=crucible
+    volumes:
+      - clamav_signatures:/var/lib/clamav
+    restart: unless-stopped
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: 0.25
+
+volumes:
+  crucible_state:
+    # Shared SQLite DB only; uploaded source never enters this volume.
+  clamav_signatures:
+    # Written by clamav-updater and mounted read-only by the dashboard.

@@ -3,30 +3,77 @@
   "displayName": "Code Pipeline",
   "description": "Improve selected code using a Claude writer/critic multi-agent loop",
   "version": "0.0.1",
-  "engines": { "vscode": "^1.85.0" },
-  "categories": ["Other"],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Code Pipeline",
+      "properties": {
+        "codePipeline.writerModel": {
+          "type": "string",
+          "default": "claude-opus-4-7"
+        },
+        "codePipeline.criticModel": {
+          "type": "string",
+          "default": "claude-opus-4-7"
+        },
+        "codePipeline.maxIterations": {
+          "type": "integer",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 10
+        },
+        "codePipeline.maxOutputTokens": {
+          "type": "integer",
+          "default": 4096,
+          "minimum": 1,
+          "maximum": 8096
+        },
+        "codePipeline.totalTokenBudget": {
+          "type": "integer",
+          "default": 32000,
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "codePipeline.timeoutMs": {
+          "type": "integer",
+          "default": 120000,
+          "minimum": 1000,
+          "maximum": 600000
+        }
+      }
+    },
     "commands": [
       {
         "command": "code-pipeline.improve",
         "title": "Code Pipeline: Improve Selected Code"
+      },
+      {
+        "command": "code-pipeline.setApiKey",
+        "title": "Code Pipeline: Set Anthropic API Key"
       }
     ]
   },
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "package": "vsce package"
+    "package": "vsce package",
+    "lint": "tsc --noEmit -p ./",
+    "test": "npm run compile && node --test test/*.test.cjs"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/vscode": "^1.85.0",
+    "@types/vscode": "1.85.0",
     "typescript": "^5.3.0"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.40.0",
+    "@anthropic-ai/sdk": "0.112.4",
     "dotenv": "^16.0.0"
   }
 }

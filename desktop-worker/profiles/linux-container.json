@@ -1,0 +1,20 @@
+{
+  "platform": "Linux",
+  "policy_id": "crucible-native-static-v2",
+  "launcher_receipt": "required-ed25519",
+  "max_jobs_per_worker": 1,
+  "ephemeral_container": true,
+  "network": "disabled",
+  "read_only_root": true,
+  "artifact_mount": "read_only",
+  "host_filesystem": "none",
+  "credentials": "none",
+  "limits": {
+    "timeout_seconds": 300,
+    "cpu_count": 2,
+    "memory_mib": 2048,
+    "disk_mib": 1024,
+    "processes": 64
+  },
+  "required_tools": ["dpkg-deb", "rpm", "rpmkeys", "readelf", "unsquashfs"]
+}
