@@ -25,7 +25,7 @@ jobs:
       # Semgrep currently pins mcp==1.23.3 and click==8.1.8. Keep these
       # exceptions advisory-specific until Semgrep publishes compatible pins.
       - run: >-
-          python -m pip_audit
+          python -m pip_audit -r crucible/requirements.txt
           --ignore-vuln PYSEC-2026-2132
           --ignore-vuln PYSEC-2026-3481
           --ignore-vuln PYSEC-2026-3482
