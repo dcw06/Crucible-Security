@@ -11,6 +11,28 @@ import upload_scanner as scanner
 from scan_models import ScannerStatus
 
 
+def test_readiness_uses_local_semgrep_rules_and_no_osv_network(monkeypatch):
+    commands = []
+    monkeypatch.setattr(scanner, "_resolve_tool", lambda name: f"/tools/{name}")
+    monkeypatch.setattr(scanner, "_tool_version", lambda binary: "1.0")
+
+    def run(command, **kwargs):
+        commands.append(command)
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(scanner.subprocess, "run", run)
+
+    readiness = scanner.check_scanner_readiness()
+
+    assert all(state["available"] for state in readiness.values())
+    assert len(commands) == 2
+    semgrep_command = next(command for command in commands if "semgrep" in command[0])
+    assert semgrep_command[semgrep_command.index("--config") + 1].endswith(
+        "readiness.yml"
+    )
+    assert all("osv-scanner" not in command[0] for command in commands)
+
+
 def test_missing_claude_key_is_explicit_failure(monkeypatch, tmp_path):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     source = tmp_path / "app.py"

@@ -17,6 +17,7 @@ services in the Render dashboard.
 import json
 import os
 import sqlite3
+import tempfile
 from contextlib import contextmanager
 from urllib.parse import urlsplit
 from pathlib import Path
@@ -24,7 +25,9 @@ from pathlib import Path
 # ── Backend detection ─────────────────────────────────────────────────────
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
-DB_PATH      = Path(os.environ.get("STATE_DB", "/tmp/crucible_state.db"))
+DB_PATH = Path(
+    os.environ.get("STATE_DB", str(Path(tempfile.gettempdir()) / "crucible_state.db"))
+)
 
 # Render's DATABASE_URL uses "postgres://" — psycopg2 requires "postgresql://"
 if DATABASE_URL.startswith("postgres://"):
@@ -127,6 +130,7 @@ def _pg_conn():
 @contextmanager
 def _sqlite_conn():
     """Open a new sqlite3 connection."""
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(DB_PATH)
     try:
         yield connection

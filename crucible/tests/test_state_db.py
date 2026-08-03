@@ -3,6 +3,16 @@
 from state import db
 
 
+def test_sqlite_creates_configured_parent_directory(monkeypatch, tmp_path):
+    monkeypatch.setattr(db, "USE_POSTGRES", False)
+    database = tmp_path / "missing" / "state.db"
+    monkeypatch.setattr(db, "DB_PATH", database)
+
+    db.init_db()
+
+    assert database.is_file()
+
+
 def test_sqlite_list_runs_returns_recent_rows(monkeypatch, tmp_path):
     monkeypatch.setattr(db, "USE_POSTGRES", False)
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "state.db")

@@ -94,10 +94,13 @@ except ImportError:  # Streamlit executes this file as a script.
 st.set_page_config(page_title="Crucible", page_icon="🔥", layout="wide")
 
 
-@st.cache_resource(show_spinner="Loading scanner engines…")
+@st.cache_data(ttl=30, show_spinner="Loading scanner engines…")
 def _scanner_readiness():
-    """Initialize scanner readiness once and reuse it across UI reruns."""
-    return load_preloaded_scanner_readiness() or check_scanner_readiness()
+    """Reuse successful startup probes but recover promptly from startup races."""
+    preloaded = load_preloaded_scanner_readiness()
+    if preloaded and all(state["available"] for state in preloaded.values()):
+        return preloaded
+    return check_scanner_readiness()
 
 @st.cache_resource
 def _initialize_state() -> None:
@@ -137,6 +140,9 @@ st.markdown(
       }
       [data-testid="stCaptionContainer"] {
         opacity: 1;
+      }
+      [data-testid="InputInstructions"] {
+        transform: translateX(-0.35rem);
       }
       button[data-baseweb="tab"] p {
         color: #b8c1d0;

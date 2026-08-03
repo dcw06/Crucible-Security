@@ -288,33 +288,28 @@ def check_scanner_readiness() -> dict[str, dict]:
                 if name == "semgrep":
                     sample = root / "sample.py"
                     sample.write_text("value = 1\n", encoding="utf-8")
-                    smoke_command = [
-                        binary, "--config", "p/default", "--json", "--quiet", str(sample),
-                    ]
-                    accepted_codes = {0, 1}
-                elif name == "osv-scanner":
-                    (root / "package-lock.json").write_text(
-                        json.dumps({
-                            "name": "crucible-readiness",
-                            "version": "1.0.0",
-                            "lockfileVersion": 3,
-                            "packages": {
-                                "": {
-                                    "name": "crucible-readiness",
-                                    "version": "1.0.0",
-                                    "dependencies": {"is-number": "7.0.0"},
-                                },
-                                "node_modules/is-number": {
-                                    "version": "7.0.0",
-                                },
-                            },
-                        }),
+                    rules = root / "readiness.yml"
+                    rules.write_text(
+                        "rules:\n"
+                        "  - id: crucible-readiness\n"
+                        "    languages: [python]\n"
+                        "    message: readiness\n"
+                        "    severity: INFO\n"
+                        "    pattern: value = 1\n",
                         encoding="utf-8",
                     )
                     smoke_command = [
-                        binary, "--recursive", "--format", "json", str(root),
+                        binary, "--config", str(rules), "--json", "--quiet", str(sample),
                     ]
                     accepted_codes = {0, 1}
+                elif name == "osv-scanner":
+                    # A real OSV query requires network access. The version probe
+                    # above verifies the executable without making dashboard
+                    # readiness depend on a transient external service.
+                    readiness[name] = {
+                        "available": True, "version": version, "error": None,
+                    }
+                    continue
                 else:
                     sample = root / "sample.txt"
                     sample.write_text("scanner readiness\n", encoding="utf-8")
