@@ -1,4 +1,4 @@
-FROM golang:1.23-bookworm AS osv-builder
+FROM golang:1.26.5-bookworm AS osv-builder
 RUN go install github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.3.8
 
 FROM python:3.11-slim

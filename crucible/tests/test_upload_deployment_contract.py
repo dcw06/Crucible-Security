@@ -69,6 +69,11 @@ def test_clamav_signatures_are_updated_separately_and_read_only_to_dashboard():
     )
 
 
+def test_osv_builder_uses_compatible_go_toolchain():
+    dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    assert "FROM golang:1.26.5-bookworm AS osv-builder" in dockerfile
+
+
 def test_uipath_publication_state_reports_confirmed_rate():
     assert uipath_publication_state({"tc_pass_rate": 2 / 3, "step": 10}) == (
         "Confirmed", "67%",
