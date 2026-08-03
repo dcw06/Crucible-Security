@@ -22,7 +22,14 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: pip
       - run: python -m pip install -r requirements-dev.txt
-      - run: python -m pip_audit
+      # Semgrep currently pins mcp==1.23.3 and click==8.1.8. Keep these
+      # exceptions advisory-specific until Semgrep publishes compatible pins.
+      - run: >-
+          python -m pip_audit
+          --ignore-vuln PYSEC-2026-2132
+          --ignore-vuln PYSEC-2026-3481
+          --ignore-vuln PYSEC-2026-3482
+          --ignore-vuln PYSEC-2026-3483
       - run: python -m pip_audit -r desktop-worker/requirements.txt
       - run: ruff check . --select E9,F63,F7,F82
       - run: mypy --ignore-missing-imports code_pipeline.py research_pipeline.py
