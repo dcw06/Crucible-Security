@@ -58,6 +58,14 @@ def test_scratch_and_database_use_separate_mounts():
         item.startswith("/home/crucible/.streamlit:")
         for item in dashboard["tmpfs"]
     )
+    assert any(item.startswith("/tmp:") for item in dashboard["tmpfs"])
+
+
+def test_webhook_has_bounded_writable_temporary_storage():
+    compose = yaml.safe_load((ROOT / "docker-compose.yml").read_text(encoding="utf-8"))
+    webhook = compose["services"]["webhook"]
+    assert webhook["read_only"] is True
+    assert any(item.startswith("/tmp:size=512m") for item in webhook["tmpfs"])
 
 
 def test_clamav_signatures_are_updated_separately_and_read_only_to_dashboard():

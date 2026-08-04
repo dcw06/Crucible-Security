@@ -24,10 +24,15 @@ from pathlib import Path
 
 # ── Backend detection ─────────────────────────────────────────────────────
 
+def _database_path() -> Path:
+    configured = os.environ.get("STATE_DB")
+    if configured:
+        return Path(configured)
+    return Path(tempfile.gettempdir()) / "crucible_state.db"
+
+
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
-DB_PATH = Path(
-    os.environ.get("STATE_DB", str(Path(tempfile.gettempdir()) / "crucible_state.db"))
-)
+DB_PATH = _database_path()
 
 # Render's DATABASE_URL uses "postgres://" — psycopg2 requires "postgresql://"
 if DATABASE_URL.startswith("postgres://"):

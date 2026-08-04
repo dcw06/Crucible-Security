@@ -3,6 +3,17 @@
 from state import db
 
 
+def test_configured_database_path_does_not_require_temp_directory(monkeypatch):
+    monkeypatch.setenv("STATE_DB", "/var/lib/crucible/state.db")
+    monkeypatch.setattr(
+        db.tempfile,
+        "gettempdir",
+        lambda: (_ for _ in ()).throw(FileNotFoundError("no temp directory")),
+    )
+
+    assert db._database_path() == db.Path("/var/lib/crucible/state.db")
+
+
 def test_sqlite_creates_configured_parent_directory(monkeypatch, tmp_path):
     monkeypatch.setattr(db, "USE_POSTGRES", False)
     database = tmp_path / "missing" / "state.db"
