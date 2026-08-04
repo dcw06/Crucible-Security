@@ -62,7 +62,10 @@ def test_clamav_signatures_are_updated_separately_and_read_only_to_dashboard():
     assert "clamav_signatures:/var/lib/clamav:ro" in _dashboard_service()["volumes"]
     assert "clamav_signatures:/var/lib/clamav" in compose["services"]["clamav-updater"]["volumes"]
     assert "--stdout" in compose["services"]["clamav-updater"]["command"]
-    assert compose["services"]["clamav-updater"]["healthcheck"]["retries"] >= 20
+    updater_health = compose["services"]["clamav-updater"]["healthcheck"]
+    assert updater_health["retries"] >= 20
+    assert "/var/lib/clamav/" in updater_health["test"][1]
+    assert "clamscan" not in updater_health["test"][1]
     assert (
         _dashboard_service()["depends_on"]["clamav-updater"]["condition"]
         == "service_healthy"

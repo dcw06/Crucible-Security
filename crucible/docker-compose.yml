@@ -83,7 +83,13 @@ services:
     mem_limit: 256m
     cpus: 0.25
     healthcheck:
-      test: ["CMD-SHELL", "clamscan --no-summary /etc/hostname >/dev/null 2>&1"]
+      test:
+        - CMD-SHELL
+        - >-
+          for db in main daily bytecode; do
+            test -s /var/lib/clamav/$${db}.cvd ||
+            test -s /var/lib/clamav/$${db}.cld || exit 1;
+          done
       interval: 10s
       timeout: 5s
       retries: 30
