@@ -54,6 +54,10 @@ def test_scratch_and_database_use_separate_mounts():
     assert "crucible_state:/var/lib/crucible" in dashboard["volumes"]
     assert dashboard["environment"]["SCANNER_SCRATCH_DIR"] == "/var/lib/crucible-scratch"
     assert dashboard["environment"]["STATE_DB"].startswith("/var/lib/crucible/")
+    assert any(
+        item.startswith("/home/crucible/.streamlit:")
+        for item in dashboard["tmpfs"]
+    )
 
 
 def test_clamav_signatures_are_updated_separately_and_read_only_to_dashboard():

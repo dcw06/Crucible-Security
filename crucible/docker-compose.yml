@@ -53,6 +53,7 @@ services:
     cpus: 2.0
     tmpfs:
       - /home/crucible/.cache:size=64m,mode=0700,uid=10001,gid=10001
+      - /home/crucible/.streamlit:size=1m,mode=0700,uid=10001,gid=10001
       - /var/lib/crucible-scratch:size=1g,mode=0700,uid=10001,gid=10001
     environment:
       STATE_DB: /var/lib/crucible/crucible_state.db
