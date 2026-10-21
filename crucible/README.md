@@ -2,7 +2,7 @@
 
 **Multi-Agent Testing Intelligence Platform**
 
-> Three agents. One adversarial loop. Zero untested edge cases.
+> Three agents. One adversarial loop. Requirement-linked tests and adversarial review.
 
 Crucible watches pull requests, generates tests with a writer/critic loop,
 scans the changed source, executes approved tests in an attested sandbox, and

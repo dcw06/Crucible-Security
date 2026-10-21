@@ -1,82 +1,68 @@
-# Multi-Agent Workspace
+# Crucible — security scanning and test orchestration
 
-This workspace collects a set of related multi-agent experiments and the
-production-style Crucible application.
+[![Workspace CI](https://github.com/dcw06/Crucible-Security/actions/workflows/ci.yml/badge.svg)](https://github.com/dcw06/Crucible-Security/actions/workflows/ci.yml)
 
-## Repository layout
+A multi-agent application for reviewing source submissions and pull requests, generating requirement-linked tests, and combining scanner findings with independently verified execution evidence. Incomplete required analysis produces a failure or review state rather than an implicit pass.
 
-```text
-.
-├── code_pipeline.py       # Original Python Writer/Critic prototype
-├── research_pipeline.py   # Parallel research-agent prototype
-├── generated_code.py      # Fixture produced by the Python prototype
-├── test_generated_code.py # Root prototype regression suite
-├── crucible/              # Security scanning web app (Git submodule)
-├── browser-worker/        # Separate Playwright/axe execution boundary
-├── desktop-worker/        # Attested native package inspection boundary
-├── mcp-server/            # MCP interface to the Writer/Critic prototype
-└── vscode-extension/      # VS Code interface to the Writer/Critic prototype
+**[Application guide](crucible/README.md) · [CI](https://github.com/dcw06/Crucible-Security/actions) · [Browser worker](browser-worker/README.md) · [Desktop worker](desktop-worker/README.md)**
+
+This is the expanded implementation. The [older Crucible repository](https://github.com/dcw06/Crucible) remains available as the original PR-pipeline prototype.
+
+## Architecture
+
+```mermaid
+flowchart TD
+  S[PR or source upload] --> A[Adapter and admission]
+  A --> C[Static scanners and review]
+  A --> T[Writer and critic]
+  T --> W[Isolated worker]
+  W --> E[Attested results]
+  C --> V[Conservative verdict]
+  E --> V
+  V --> U[Dashboard and PR feedback]
 ```
 
-`crucible/` is intentionally maintained as its own repository and connected to
-this workspace as a Git submodule. Clone the complete workspace with:
+Semgrep, OSV-Scanner, ClamAV, and model review report their own coverage/status. Remote workers bind results to the target, nonce, plan, policy, and evidence digests. Test Cloud publishes and confirms execution results; missing verified sandbox evidence prevents automatic approval.
+
+## Run locally
 
 ```bash
-git clone --recurse-submodules <workspace-url>
+git clone https://github.com/dcw06/Crucible-Security.git
+cd Crucible-Security
+make setup
+cp .env.example .env
+make test
+make web
 ```
 
-For an existing clone:
+`make web` binds the development scanner to `127.0.0.1`. Production requires scanner authentication and operational scanning dependencies. Credentials and native scanners are documented in the [application guide](crucible/README.md); do not expose the development profile publicly.
+
+## Verify
 
 ```bash
-git submodule update --init --recursive
+make check
+make build-workers
 ```
 
-## Development environment
+CI checks Python 3.11/3.14 and Node 20/22, dependency audits, Python tests, TypeScript builds/tests, and worker-image builds. Passing CI does not show that generated tests detect every defect or that every worker capability has been deployed.
 
-Use one virtual environment at the workspace root:
+## Workspace map and attribution
 
-```bash
-python3 -m venv .venv
-./.venv/bin/python -m pip install -r requirements-dev.txt
-```
+| Path | Status |
+|---|---|
+| `crucible/` | Main application; an ordinary tracked directory, not a Git submodule |
+| `browser-worker/`, `desktop-worker/` | Separate execution/inspection services |
+| `code_pipeline.py`, `research_pipeline.py` | Earlier prototypes |
+| `mcp-server/`, `vscode-extension/` | Interfaces to the earlier Writer/Critic loop |
 
-Do not create or commit a second environment inside `crucible/`.
+Maintained by Chongwei (Alan) Dai. Upstream scanner/model work is credited separately; AI coauthor attribution remains in Git history. See [LICENSE](LICENSE).
 
-Useful commands:
+## Evidence and limitations
 
-```bash
-make test          # Root and Crucible Python tests
-make build         # MCP server and VS Code extension TypeScript builds
-make check         # Python compilation, tests, and TypeScript builds
-make test-worker   # Browser-worker policy contract tests
-make test-desktop-worker # Native worker parser/contract tests
-make web           # Local-only Crucible UI on 127.0.0.1
-make api           # Crucible FastAPI webhook API
-```
+- Verdicts describe completed checks and their coverage, not a security certification.
+- The weighted confidence score is a policy heuristic, not a calibrated probability of correctness.
+- There is no published defect-detection benchmark in this checkout; no universal test-quality or edge-case coverage guarantee is made.
+- Live model calls, Test Cloud, and platform worker deployments need separate configuration. The local setup is not a hosted demo.
+- The [workspace manual](docs/WORKSPACE.md) retains supporting development details; the [application guide](crucible/README.md) describes current trust boundaries.
 
-The root prototypes require Anthropic credentials for live model calls.
-`research_pipeline.py` also requires `BRAVE_SEARCH_API_KEY`; it fails closed
-when live search is unavailable and no longer produces simulated research.
-Crucible has additional scanner and service configuration documented in
-[`crucible/README.md`](crucible/README.md).
-
-`make web` explicitly uses the development-only unauthenticated scanner profile
-and binds Streamlit to `127.0.0.1`. Production and Docker launches remain
-fail-closed and require a `SCANNER_ACCESS_TOKEN` of at least 32 characters.
-
-## Artifact policy
-
-PDF design documents are small enough to remain workspace documentation.
-Demo recordings (`*.mp4`, `*.mov`, and `*.m4v`) are intentionally local-only
-and ignored by Git because they currently total more than 200 MB. Publish those
-through release storage or an external media service if they need distribution.
-
-Generated JavaScript, packaged VSIX files, dependency directories, virtual
-environments, caches, SQLite state, and local secrets are also excluded.
-
-## Component status
-
-- Root Python files are historical prototypes and test fixtures.
-- `crucible/` is the current web application and security-scanning system.
-- `mcp-server/` and `vscode-extension/` expose the earlier Writer/Critic loop
-  through MCP and VS Code respectively.
+Dependency audit scope and the one CLI-only upstream advisory exception are documented in [DEPENDENCY_SECURITY.md](docs/DEPENDENCY_SECURITY.md).

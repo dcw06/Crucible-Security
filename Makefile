@@ -39,8 +39,7 @@ quality:
 	cmp -s crucible/requirements.txt crucible/constraints.txt
 	$(PYTHON) -m ruff check . --select E9,F63,F7,F82
 	$(PYTHON) -m mypy --ignore-missing-imports code_pipeline.py research_pipeline.py
-	$(PYTHON) -m pip_audit
-	$(PYTHON) -m pip_audit -r desktop-worker/requirements.txt
+	$(PYTHON) scripts/audit_dependencies.py
 	@if git grep -nE '(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{20,})' -- ':!*.example' ':!**/*.example'; then \
 		echo "Potential committed secret detected"; exit 1; \
 	fi
