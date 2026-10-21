@@ -1,10 +1,10 @@
 # Crucible — security scanning and test orchestration
 
-[![Workspace CI](https://github.com/dcw06/Crucible-Updated-7-30-/actions/workflows/ci.yml/badge.svg)](https://github.com/dcw06/Crucible-Updated-7-30-/actions/workflows/ci.yml)
+[![Workspace CI](https://github.com/dcw06/Crucible-Security/actions/workflows/ci.yml/badge.svg)](https://github.com/dcw06/Crucible-Security/actions/workflows/ci.yml)
 
 A multi-agent application for reviewing source submissions and pull requests, generating requirement-linked tests, and combining scanner findings with independently verified execution evidence. Incomplete required analysis produces a failure or review state rather than an implicit pass.
 
-**[Application guide](crucible/README.md) · [CI](https://github.com/dcw06/Crucible-Updated-7-30-/actions) · [Browser worker](browser-worker/README.md) · [Desktop worker](desktop-worker/README.md)**
+**[Application guide](crucible/README.md) · [CI](https://github.com/dcw06/Crucible-Security/actions) · [Browser worker](browser-worker/README.md) · [Desktop worker](desktop-worker/README.md)**
 
 This is the expanded implementation. The [older Crucible repository](https://github.com/dcw06/Crucible) remains available as the original PR-pipeline prototype.
 
@@ -27,8 +27,8 @@ Semgrep, OSV-Scanner, ClamAV, and model review report their own coverage/status.
 ## Run locally
 
 ```bash
-git clone https://github.com/dcw06/Crucible-Updated-7-30-.git
-cd Crucible-Updated-7-30-
+git clone https://github.com/dcw06/Crucible-Security.git
+cd Crucible-Security
 make setup
 cp .env.example .env
 make test
@@ -64,3 +64,5 @@ Maintained by Chongwei (Alan) Dai. Upstream scanner/model work is credited separ
 - There is no published defect-detection benchmark in this checkout; no universal test-quality or edge-case coverage guarantee is made.
 - Live model calls, Test Cloud, and platform worker deployments need separate configuration. The local setup is not a hosted demo.
 - The [workspace manual](docs/WORKSPACE.md) retains supporting development details; the [application guide](crucible/README.md) describes current trust boundaries.
+
+Dependency audit scope and the one CLI-only upstream advisory exception are documented in [DEPENDENCY_SECURITY.md](docs/DEPENDENCY_SECURITY.md).

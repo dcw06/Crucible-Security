@@ -23,8 +23,8 @@ production-style Crucible application.
 `crucible/` is an ordinary tracked directory in this workspace. Clone it normally:
 
 ```bash
-git clone https://github.com/dcw06/Crucible-Updated-7-30-.git
-cd Crucible-Updated-7-30-
+git clone https://github.com/dcw06/Crucible-Security.git
+cd Crucible-Security
 ```
 
 ## Development environment
